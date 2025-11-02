@@ -9,7 +9,7 @@ ex. config/config.env
 PORT = 5003
 NODE_ENV = development
 
-MONGO_URI = mongodb+srv://jjmaleewong:Jjrock2004@vacq.smobqj7.mongodb.net/vacq?retryWrites=true&w=majority&appName=VacQ
+MONGO_URI = mongodb+srv://<username>:<password>4@vacq.smobqj7.mongodb.net/vacq?retryWrites=true&w=majority&appName=VacQ
 yWrites=true&w=majority
 
 JWT_SECRET = asdfjkl;;lkjfdsa
