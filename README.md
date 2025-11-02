@@ -1,6 +1,6 @@
 1. create config/config.env at the root of this projects.
 2. add .env as your choice.
-3. npm install at the first time.
+3. npm install for the first time.
 4. npm run dev
 
 ---------------------------
