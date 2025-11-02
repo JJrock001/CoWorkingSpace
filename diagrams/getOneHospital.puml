@@ -1,0 +1,23 @@
+@startuml
+title GET One Hospital
+
+participant "<<javascript>>\n:server" as S
+participant "<<router>>\n:hospitals" as R
+participant "<<controllers>>\n:hospitals" as C
+participant "<<model>>\n:Hospital" as M
+database   "<<MongoDB>>\n:hospitals" as DB
+
+S -> R : req.get('/hospitals/:id')
+S -[#gray,dashed]> R : app.use('/api/v1/hospitals', hospitals)
+R -> C : getHospital(req,res)
+C -> M : Hospital.findById(req.params.id)
+M -> DB : findById(id)
+DB --> M : hospital | null
+M --> C : hospital | null
+
+alt found
+  C --> S : 200 {success:true, data:hospital}
+else not found
+  C --> S : 404 {success:false, error:'Not found'}
+end
+@enduml

@@ -1,0 +1,31 @@
+@startuml
+title DELETE Hospital
+
+participant "<<javascript>>\nserver" as S
+participant "<<router>>\nhospitals" as R
+participant "<<controller>>\nhospitals" as C
+participant "<<model>>\nHospital" as M
+database   "<<MongoDB>>\nhospitals" as DB
+
+' incoming request
+S -> R : DELETE /api/v1/hospitals/:id
+
+' router dispatches to controller
+R -> C : deleteHospital(req,res)
+
+' controller asks model to delete
+C -> M : Hospital.findByIdAndDelete(req.params.id)
+
+' model hits DB
+M -> DB : findOneAndDelete({ _id:id })
+DB --> M : deletedDoc | null | error
+M --> C : deletedDoc | null | error
+
+alt deleted
+  C --> S : 200 { success:true, data:{} }
+else not found
+  C --> S : 404 { success:false, error:"Not found" }
+else error
+  C --> S : 500 { success:false, error:"Server error" }
+end
+@enduml

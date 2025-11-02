@@ -1,0 +1,30 @@
+@startuml
+title GET One Hospital
+
+participant "<<javascript>>\n:server" as S
+participant "<<router>>\n:hospitals" as R
+participant "<<controllers>>\n:hospitals" as C
+participant "<<model>>\n:Hospital" as M
+database   "<<MongoDB>>\n:hospitals" as DB
+
+' 1) incoming request
+S -> R : req.get('/hospitals/:id')
+
+' 2) router registration at boot (mount point)
+S -[#gray,dashed]> R : app.use('/api/v1/hospitals', hospitals)
+
+' 3) router dispatches to controller
+R -> C : getHospital(req,res)
+
+' controller queries model / DB
+C -> M : Hospital.findById(req.params.id)
+M -> DB : findById(id)
+DB --> M : hospital | null
+M --> C : hospital | null
+
+alt found
+  C --> S : res.status(200).json({success:true, data:hospital})
+else not found
+  C --> S : res.status(404).json({success:false, error:'Not found'})
+end
+@enduml

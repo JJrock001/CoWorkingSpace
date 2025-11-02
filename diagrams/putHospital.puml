@@ -1,0 +1,31 @@
+@startuml
+title PUT Update Hospital
+
+participant "<<javascript>>\nserver" as S
+participant "<<router>>\nhospitals" as R
+participant "<<controller>>\nhospitals" as C
+participant "<<model>>\nHospital" as M
+database   "<<MongoDB>>\nhospitals" as DB
+
+' incoming request with JSON body
+S -> R : PUT /api/v1/hospitals/:id\nBody: { name, address, ... }
+
+' router dispatches to controller
+R -> C : updateHospital(req,res)
+
+' controller calls model (Mongoose style)
+C -> M : Hospital.findByIdAndUpdate(id, req.body,\n    { new:true, runValidators:true })
+
+' model talks to DB
+M -> DB : updateOne({_id:id}, $set:req.body)
+DB --> M : updatedDoc | null | ValidationError
+M --> C : updatedDoc | null | error
+
+alt updated
+  C --> S : 200 { success:true, data:updatedDoc }
+else not found
+  C --> S : 404 { success:false, error:"Not found" }
+else validation error
+  C --> S : 400 { success:false, error:"Validation error", details:error }
+end
+@enduml
