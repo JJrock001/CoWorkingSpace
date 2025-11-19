@@ -12,6 +12,6 @@ NODE_ENV = development
 MONGO_URI = mongodb+srv://<username>:<password>4@vacq.smobqj7.mongodb.net/vacq?retryWrites=true&w=majority&appName=VacQ
 yWrites=true&w=majority
 
-JWT_SECRET = asdfjkl;;lkjfdsa
+JWT_SECRET = <yourJWTsecret>
 JWT_EXPIRE = 30d
 JWT_COOKIE_EXPIRE = 30
