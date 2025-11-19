@@ -1,3 +1,16 @@
+// @desc    Log user out / clear cookie
+// @route   GET /api/v1/auth/logout
+// @access  Public
+exports.logout = (req, res, next) => {
+    res.cookie('token', 'none', {
+        expires: new Date(Date.now() + 10 * 1000),
+        httpOnly: true
+    });
+    res.status(200).json({
+        success: true,
+        data: {}
+    });
+}
 const User = require('../models/User');
 
 // @desc    Register user
@@ -5,9 +18,10 @@ const User = require('../models/User');
 // @access  Public
 exports.register = async (req, res, next) => {
     try{
-        const {name, email, password, role} = req.body;
+        const {name, telephone, email, password, role} = req.body;
         const user = await User.create({
             name,
+            telephone,
             email,
             password,
             role
