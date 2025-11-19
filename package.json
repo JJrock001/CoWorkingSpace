@@ -1,7 +1,7 @@
 {
   "name": "a-7-jjrock001",
   "version": "1.0.0",
-  "description": "Hospital Management API",
+  "description": "CoWorkingSpace Room Booking API",
   "main": "server.js",
   "scripts": {
     "start": "NODE_ENV=production node server",
