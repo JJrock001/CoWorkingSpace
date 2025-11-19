@@ -23,6 +23,12 @@ exports.createReservation = async (req, res) => {
       return res.status(409).json({ success: false, error: 'Room is already reserved for this time slot.' });
     }
 
+    // Enforce 3-reservation limit per user per day
+    const userReservationsCount = await Reservation.countDocuments({ user, date });
+    if (userReservationsCount >= 3) {
+      return res.status(403).json({ success: false, error: 'You can only reserve up to 3 rooms per day.' });
+    }
+
     const reservation = await Reservation.create({
       user,
       roomId,
