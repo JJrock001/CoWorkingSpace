@@ -9,6 +9,7 @@ connectDB();
 //Route files
 const rooms = require('./routes/rooms');
 const auth = require('./routes/auth');
+const reservations = require('./routes/reservations');
 
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.json());
 
 app.use('/api/v1/rooms', rooms);
 app.use('/api/v1/auth', auth);
+app.use('/api/v1/reservations', reservations);
 
 const PORT = process.env.PORT || 5003;
 
