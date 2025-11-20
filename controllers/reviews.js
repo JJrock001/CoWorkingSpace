@@ -52,3 +52,23 @@ exports.getRoomReviews = async (req, res) => {
   }
 };
 
+// @desc    Delete a review (admin or review owner)
+// @route   DELETE /api/v1/rooms/:roomId/reviews/:reviewId
+// @access  Private (admin or review creator)
+exports.deleteReview = async (req, res) => {
+  try {
+    const review = await Review.findById(req.params.reviewId);
+    if (!review) {
+      return res.status(404).json({ success: false, error: 'Review not found' });
+    }
+    // Only admin or review creator can delete
+    if (req.user.role !== 'admin' && review.user.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, error: 'Not authorized to delete this review' });
+    }
+    await review.deleteOne();
+    res.status(200).json({ success: true, message: 'Review deleted' });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+};
+
