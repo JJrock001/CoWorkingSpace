@@ -1,0 +1,532 @@
+{
+	"info": {
+		"_postman_id": "coworking-space-collection",
+		"name": "CoWorkingSpace API Tests",
+		"description": "Automated tests for CoWorkingSpace API using Newman",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. User Registration + Validation",
+			"item": [
+				{
+					"name": "Register User - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Response has token\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.environment.set(\"user_token\", jsonData.token);",
+									"});",
+									"pm.test(\"Save user email\", function () {",
+									"    var requestBody = JSON.parse(pm.request.body.raw);",
+									"    pm.environment.set(\"user_email\", requestBody.email);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test User\",\n  \"telephone\": \"0812345678\",\n  \"email\": \"testuser{{$randomInt}}@example.com\",\n  \"password\": \"12345678\",\n  \"role\": \"user\"\n}"
+						},
+						"url": {"raw": "{{base_url}}/api/v1/auth/register", "host": ["{{base_url}}"], "path": ["api", "v1", "auth", "register"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. User Log-in",
+			"item": [
+				{
+					"name": "Login User - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"Response has token\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.environment.set(\"user_token\", jsonData.token);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"12345678\"\n}"
+						},
+						"url": {"raw": "{{base_url}}/api/v1/auth/login", "host": ["{{base_url}}"], "path": ["api", "v1", "auth", "login"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. User View Product (Rooms)",
+			"item": [
+				{
+					"name": "Get All Rooms",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"Response has rooms\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    if (jsonData.data.length > 0) {",
+									"        pm.environment.set(\"room_id\", jsonData.data[0]._id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"url": {"raw": "{{base_url}}/api/v1/rooms", "host": ["{{base_url}}"], "path": ["api", "v1", "rooms"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. User Create Booking",
+			"item": [
+				{
+					"name": "Create Reservation - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+									"pm.test(\"Response has reservation\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.environment.set(\"reservation_id\", jsonData.data._id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{user_token}}", "type": "string"}]},
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"roomId\": \"{{room_id}}\",\n  \"date\": \"2024-12-25\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"10:00\"\n}"
+						},
+						"url": {"raw": "{{base_url}}/api/v1/reservations", "host": ["{{base_url}}"], "path": ["api", "v1", "reservations"]}
+					}
+				},
+				{
+					"name": "Create Reservation - Missing Required Fields",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () { pm.response.to.have.status(400); });",
+									"pm.test(\"Response indicates missing fields\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(false);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{user_token}}", "type": "string"}]},
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"roomId\": \"{{room_id}}\"\n}"
+						},
+						"url": {"raw": "{{base_url}}/api/v1/reservations", "host": ["{{base_url}}"], "path": ["api", "v1", "reservations"]}
+					}
+				},
+				{
+					"name": "Create Reservation - Overlapping Time (Conflict)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 409\", function () { pm.response.to.have.status(409); });",
+									"pm.test(\"Response indicates conflict\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(false);",
+									"    pm.expect(jsonData.error).to.include('already reserved');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{user_token}}", "type": "string"}]},
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"roomId\": \"{{room_id}}\",\n  \"date\": \"2024-12-25\",\n  \"startTime\": \"09:30\",\n  \"endTime\": \"10:30\"\n}"
+						},
+						"url": {"raw": "{{base_url}}/api/v1/reservations", "host": ["{{base_url}}"], "path": ["api", "v1", "reservations"]}
+					}
+				},
+				{
+					"name": "Create Reservation - 1st Reservation (Setup for Limit Test)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{user_token}}", "type": "string"}]},
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"roomId\": \"{{room_id}}\",\n  \"date\": \"2024-12-01\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"10:00\"\n}"
+						},
+						"url": {"raw": "{{base_url}}/api/v1/reservations", "host": ["{{base_url}}"], "path": ["api", "v1", "reservations"]}
+					}
+				},
+				{
+					"name": "Create Reservation - 2nd Reservation (Setup for Limit Test)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{user_token}}", "type": "string"}]},
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"roomId\": \"{{room_id}}\",\n  \"date\": \"2024-12-01\",\n  \"startTime\": \"11:00\",\n  \"endTime\": \"12:00\"\n}"
+						},
+						"url": {"raw": "{{base_url}}/api/v1/reservations", "host": ["{{base_url}}"], "path": ["api", "v1", "reservations"]}
+					}
+				},
+				{
+					"name": "Create Reservation - 3rd Reservation (Setup for Limit Test)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{user_token}}", "type": "string"}]},
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"roomId\": \"{{room_id}}\",\n  \"date\": \"2024-12-01\",\n  \"startTime\": \"13:00\",\n  \"endTime\": \"14:00\"\n}"
+						},
+						"url": {"raw": "{{base_url}}/api/v1/reservations", "host": ["{{base_url}}"], "path": ["api", "v1", "reservations"]}
+					}
+				},
+				{
+					"name": "Create Reservation - Exceed 3 Reservations Per Day",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403\", function () { pm.response.to.have.status(403); });",
+									"pm.test(\"Response indicates limit exceeded\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(false);",
+									"    pm.expect(jsonData.error).to.include('3 rooms per day');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{user_token}}", "type": "string"}]},
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"roomId\": \"{{room_id}}\",\n  \"date\": \"2024-12-30\",\n  \"startTime\": \"15:00\",\n  \"endTime\": \"16:00\"\n}"
+						},
+						"url": {"raw": "{{base_url}}/api/v1/reservations", "host": ["{{base_url}}"], "path": ["api", "v1", "reservations"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. User View Own Booking",
+			"item": [
+				{
+					"name": "Get All User Reservations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"Response has reservations\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{user_token}}", "type": "string"}]},
+						"method": "GET",
+						"url": {"raw": "{{base_url}}/api/v1/reservations", "host": ["{{base_url}}"], "path": ["api", "v1", "reservations"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "6. User Edit Own Booking",
+			"item": [
+				{
+					"name": "Update Reservation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{user_token}}", "type": "string"}]},
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"startTime\": \"10:00\",\n  \"endTime\": \"11:00\"\n}"
+						},
+						"url": {"raw": "{{base_url}}/api/v1/reservations/{{reservation_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "reservations", "{{reservation_id}}"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "7. User Delete Own Booking",
+			"item": [
+				{
+					"name": "Delete Reservation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{user_token}}", "type": "string"}]},
+						"method": "DELETE",
+						"url": {"raw": "{{base_url}}/api/v1/reservations/{{reservation_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "reservations", "{{reservation_id}}"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "8. User Log-out",
+			"item": [
+				{
+					"name": "Logout User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"url": {"raw": "{{base_url}}/api/v1/auth/logout", "host": ["{{base_url}}"], "path": ["api", "v1", "auth", "logout"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "9. Admin Log-in",
+			"item": [
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"Response has token\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.environment.set(\"admin_token\", jsonData.token);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+						},
+						"url": {"raw": "{{base_url}}/api/v1/auth/login", "host": ["{{base_url}}"], "path": ["api", "v1", "auth", "login"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "10. Admin View Any Booking",
+			"item": [
+				{
+					"name": "Get All Reservations (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"Admin can see all reservations\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data.length > 0) {",
+									"        pm.environment.set(\"admin_reservation_id\", jsonData.data[0]._id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{admin_token}}", "type": "string"}]},
+						"method": "GET",
+						"url": {"raw": "{{base_url}}/api/v1/reservations", "host": ["{{base_url}}"], "path": ["api", "v1", "reservations"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "11. Admin Edit Any Booking",
+			"item": [
+				{
+					"name": "Update Reservation (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{admin_token}}", "type": "string"}]},
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"startTime\": \"14:00\",\n  \"endTime\": \"15:00\"\n}"
+						},
+						"url": {"raw": "{{base_url}}/api/v1/reservations/{{admin_reservation_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "reservations", "{{admin_reservation_id}}"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "12. Admin Delete Any Booking",
+			"item": [
+				{
+					"name": "Delete Reservation (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{admin_token}}", "type": "string"}]},
+						"method": "DELETE",
+						"url": {"raw": "{{base_url}}/api/v1/reservations/{{admin_reservation_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "reservations", "{{admin_reservation_id}}"]}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5003",
+			"type": "string"
+		}
+	]
+}
+
