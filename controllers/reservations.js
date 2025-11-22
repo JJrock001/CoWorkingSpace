@@ -1,14 +1,3 @@
-// @desc    Get all reservations for the logged-in user
-// @route   GET /api/v1/reservations/me
-// @access  Private
-exports.getMyReservations = async (req, res) => {
-  try {
-    const reservations = await Reservation.find({ user: req.user.id }).populate('roomId');
-    res.status(200).json({ success: true, count: reservations.length, data: reservations });
-  } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
-  }
-};
 const Reservation = require('../models/Reservation');
 
 // @desc    Create a reservation (join a room)
