@@ -13,14 +13,18 @@ exports.createReservation = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Please provide roomId, date, startTime, and endTime' });
     }
 
-    // Normalize date to Date object
+    // Normalize date to Date object (set to start of day to ensure consistent comparison)
     const reservationDate = new Date(date);
+    reservationDate.setHours(0, 0, 0, 0);
 
     // Check for overlapping reservations
     // Two time slots overlap if: startTime1 < endTime2 AND endTime1 > startTime2
     const conflict = await Reservation.findOne({
       roomId,
-      date: reservationDate,
+      date: {
+        $gte: new Date(reservationDate),
+        $lt: new Date(reservationDate.getTime() + 24 * 60 * 60 * 1000)
+      },
       startTime: { $lt: endTime },
       endTime: { $gt: startTime }
     });
@@ -29,9 +33,15 @@ exports.createReservation = async (req, res) => {
     }
 
     // Enforce 3-reservation limit per user per day
+    // Use date range to match all reservations on the same day regardless of time
+    const startOfDay = new Date(reservationDate);
+    const endOfDay = new Date(reservationDate.getTime() + 24 * 60 * 60 * 1000);
     const userReservationsCount = await Reservation.countDocuments({ 
       user, 
-      date: reservationDate 
+      date: {
+        $gte: startOfDay,
+        $lt: endOfDay
+      }
     });
     if (userReservationsCount >= 3) {
       return res.status(403).json({ success: false, error: 'You can only reserve up to 3 rooms per day.' });

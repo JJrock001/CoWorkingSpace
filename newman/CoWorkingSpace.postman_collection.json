@@ -293,7 +293,7 @@
 						"header": [{"key": "Content-Type", "value": "application/json"}],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"roomId\": \"{{room_id}}\",\n  \"date\": \"2024-12-30\",\n  \"startTime\": \"15:00\",\n  \"endTime\": \"16:00\"\n}"
+							"raw": "{\n  \"roomId\": \"{{room_id}}\",\n  \"date\": \"2024-12-01\",\n  \"startTime\": \"15:00\",\n  \"endTime\": \"16:00\"\n}"
 						},
 						"url": {"raw": "{{base_url}}/api/v1/reservations", "host": ["{{base_url}}"], "path": ["api", "v1", "reservations"]}
 					}
